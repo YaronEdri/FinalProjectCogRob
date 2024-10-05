@@ -1,0 +1,22 @@
+<model name="box">
+  <pose>0 0 0.5 0 0 0</pose>
+  <link name="link">
+    <collision name="collision">
+      <geometry>
+        <box>
+          <size>6 6 2</size>
+        </box>
+      </geometry>
+    </collision>
+    <visual name="visual">
+      <geometry>
+        <box>
+          <size>1 1 1</size>
+        </box>
+      </geometry>
+      <material>
+        <script>Gazebo/Red</script> <!-- Green / Blue -->
+      </material>
+    </visual>
+  </link>
+</model>

@@ -1,0 +1,260 @@
+#!/usr/bin/env python
+import rospy
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from tf.transformations import euler_from_quaternion
+
+import math
+import ros_listener
+
+
+class TurtleBotController:
+    VELOCITY_COEFF = 0.005
+    DIS_LIMIT = 0.05
+    def __init__(self):
+        # Initialize the node
+        # rospy.init_node('turtlebot_controller', anonymous=True)
+        
+        # Publisher for velocity commands
+        self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        
+        # Subscriber for odometry data
+        self.odom_sub = rospy.Subscriber('/odom', Odometry, self.odom_callback)
+        
+        # Twist message for velocity commands
+        self.velocity = Twist()
+
+        # Set the rate
+        self.rate = rospy.Rate(10)  # 10 Hz
+
+        # Initialize orientation tracking
+        self.current_yaw = 0.0
+        self.current_loc = (0.0, 0.0)
+        self.odom_received = False
+
+    def odom_callback(self, msg):
+        """
+        Callback function to process odometry messages.
+        Extracts and updates the current yaw angle of the robot.
+        """
+        position = msg.pose.pose.position
+        self.current_loc = (position.y, position.x)
+
+        orientation_q = msg.pose.pose.orientation
+        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+        (_, _, self.current_yaw) = euler_from_quaternion(orientation_list)
+        self.odom_received = True
+
+
+    def normalize_angle(self, angle):
+        """
+        Normalize an angle to be within [-pi, pi].
+        """
+        return math.atan2(math.sin(angle), math.cos(angle))
+
+    def turn_robot(self, direction):
+        """
+        Turns the robot by ±90 degrees based on odometry.
+        direction: +1 for 90 degrees right, -1 for 90 degrees left
+        """
+        if not self.odom_received:
+            rospy.loginfo("Waiting for odom data...")
+            rospy.sleep(1)
+        
+        # Get the initial yaw
+        initial_yaw = self.current_yaw
+
+        # Set the target yaw based on direction
+        target_yaw = initial_yaw + math.radians(90) * direction
+        target_yaw = self.normalize_angle(target_yaw)
+
+        # Set angular speed
+        angular_speed = 0.3  # rad/s
+
+        # Keep turning until the target yaw is achieved
+        while not rospy.is_shutdown():
+            # Calculate yaw error
+            yaw_error = self.normalize_angle(target_yaw - self.current_yaw)
+
+            # If the error is small enough, stop turning
+            if abs(yaw_error) < math.radians(1):  # 1 degree tolerance
+                rospy.loginfo("Turn complete!")
+                break
+
+            # Set the angular velocity
+            self.velocity.angular.z = angular_speed * direction
+            self.velocity.linear.x = 0  # No forward motion
+
+            # Publish the velocity
+            self.vel_pub.publish(self.velocity)
+
+            # Sleep and wait for the next loop
+            self.rate.sleep()
+
+        # Stop turning after the turn is complete
+        self.velocity.angular.z = 0
+        self.vel_pub.publish(self.velocity)
+
+
+    def adjust_linear_velocity(self, speed_change):
+        """
+        Adjusts the linear velocity of the robot.
+        speed_change: Positive to increase, negative to decrease
+        """
+        # Adjust the linear velocity
+        self.velocity.linear.x += speed_change
+
+        # Prevent negative speed (for safety, limit it to 0)
+        if self.velocity.linear.x <= 0:
+            self.velocity.linear.x = ros_listener.vel_to_xy(1) * self.VELOCITY_COEFF
+
+        # Set angular velocity to 0 (move straight)
+        self.velocity.angular.z = 0
+        rospy.loginfo(f"Velocity {self.velocity}")
+
+        # Publish the new velocity
+        self.vel_pub.publish(self.velocity)
+
+    def turn_by_direction(self, old_direction, new_direction):
+        """
+        Turns the robot based on the old and new directions.
+        Directions are in the form of (x, y) where:
+        - (1, 0) = right (east)
+        - (0, 1) = up (north)
+        - (-1, 0) = left (west)
+        - (0, -1) = down (south)
+        """
+
+        # List of possible directions
+        directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+        if old_direction not in directions or new_direction not in directions:
+            rospy.logwarn("Invalid directions. Must be one of (1,0), (0,1), (-1,0), (0,-1)")
+            return
+
+        # Calculate the change in direction
+        old_index = directions.index(old_direction)
+        new_index = directions.index(new_direction)
+
+        # Calculate how much to turn
+        turn_steps = (new_index - old_index) % 4  # Result in range [0, 3]
+
+        # Determine the rotation direction and magnitude
+        if turn_steps == 1:
+            # 90 degrees right
+            self.turn_robot(1)
+        elif turn_steps == 3:
+            # 90 degrees left (which is the same as -90 degrees)
+            self.turn_robot(-1)
+        elif turn_steps == 2:
+            # 180 degrees
+            self.turn_robot(1)
+            rospy.sleep(1)  # Wait a second before turning again
+            self.turn_robot(1)
+
+    def stop_robot(self):
+        """
+        Stops the robot by setting all velocities to zero.
+        """
+        self.velocity.linear.x = 0
+        self.velocity.angular.z = 0
+        self.vel_pub.publish(self.velocity)
+    
+    def wait_to_reach_des(self, des):
+        distance = math.sqrt((self.current_loc[0] - des[0])**2 + (self.current_loc[1] - des[1]) ** 2)
+        rospy.loginfo(f"Des : {des}")
+        rospy.loginfo(f"Current Loc: {self.current_loc}")
+
+        while distance > self.DIS_LIMIT:
+            self.rate.sleep()
+            distance = math.sqrt((self.current_loc[0] - des[0])**2 + (self.current_loc[1] - des[1]) ** 2)
+            self.correct_heading(des)
+            rospy.loginfo(f"Distance from des {distance}")
+            rospy.loginfo(f"Loc : {self.current_loc}")
+
+
+    def correct_heading(self, goal):
+        """
+        Corrects the robot's heading so that it faces the goal.
+        :param goal: The (x, y) coordinates of the goal.
+        """
+        if not self.odom_received:
+            rospy.loginfo("Waiting for odom data...")
+            rospy.sleep(1)
+
+        # Get the current location and goal coordinates
+        current_x, current_y = self.current_loc
+        goal_x, goal_y = goal
+
+        # Calculate the desired angle (heading) between the current position and the goal
+        desired_heading = math.atan2(goal_y - current_y, goal_x - current_x)
+
+        # Calculate the difference between the current yaw and the desired heading
+        yaw_error = self.normalize_angle(desired_heading - self.current_yaw)
+
+        rospy.loginfo(f"Current Yaw: {self.current_yaw}")
+        rospy.loginfo(f"Desired Heading: {desired_heading}")
+
+        # Correct the heading by turning the robot
+        angular_speed = 0.05  # rad/s
+
+        # Keep turning until the yaw error is small enough
+        while abs(yaw_error) > math.radians(1):  # 1 degree tolerance
+            # Set angular velocity proportional to yaw error
+            self.velocity.angular.z = angular_speed if yaw_error > 0 else -angular_speed
+            # self.velocity.linear.x = 0  # No forward motion while turning
+            rospy.loginfo(f"Yaw Error: {yaw_error}")
+
+            # Publish the velocity command
+            self.vel_pub.publish(self.velocity)
+
+            # Update yaw error
+            yaw_error = self.normalize_angle(desired_heading - self.current_yaw)
+
+            # Sleep to maintain the loop rate
+            self.rate.sleep()
+
+        # Stop turning after correcting the heading
+        self.velocity.angular.z = 0
+        self.vel_pub.publish(self.velocity)
+        rospy.loginfo("Heading corrected!")
+
+
+    def run_path(self, path):
+        previous_step = path[0]
+        for step in path[1:]:
+            rospy.loginfo(f"{previous_step}, {step}")
+            self.turn_by_direction(previous_step[1], step[1])
+            rospy.sleep(1)
+            vel_change = ros_listener.vel_to_xy((step[2] - previous_step[2])) * self.VELOCITY_COEFF
+            self.adjust_linear_velocity(vel_change)
+            # rospy.sleep(10)
+            des = ros_listener.map_to_xy(step[0][0], step[0][1])
+            rospy.loginfo(f"Des pixel {step[0]}")
+            self.wait_to_reach_des(des)
+            previous_step = step
+        self.stop_robot()
+        rospy.loginfo("Reached destination")
+
+
+if __name__ == '__main__':
+    try:
+        controller = TurtleBotController()
+        
+        # Example usage:
+        controller.adjust_linear_velocity(0.2)  # Increase linear speed
+        rospy.sleep(2)  # Move for 2 seconds
+        
+        controller.turn_by_direction((1, 0), (0, 1))  # Turn from right (east) to up (north)
+        rospy.sleep(1)
+
+        controller.adjust_linear_velocity(-0.1)  # Decrease linear speed
+        rospy.sleep(2)  # Move for 2 seconds
+
+        controller.turn_by_direction((0, 1), (-1, 0))  # Turn from up (north) to left (west)
+
+        # Stop the robot after commands
+        controller.stop_robot()
+
+    except rospy.ROSInterruptException:
+        pass
