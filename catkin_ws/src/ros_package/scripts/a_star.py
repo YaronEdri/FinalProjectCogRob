@@ -132,12 +132,14 @@ def convert_map_to_grid(image):
 # Example usage:
 if __name__ == "__main__":
 	
-	im = cv2.imread("/home/yaron/catkin_ws/image.png")
+	im = cv2.imread("/home/yaron/FinalProjectCogRob/catkin_ws/image.png")
 	b = convert_map_to_grid(im)
 	# first_package = (230, 180)
-	first_package = (34, 153)
-	rob_pos = (72, 102)
+	first_package = (6, 30)
+	# first_package = (218, 230)
+	rob_pos = (14, 20)
 	path, cost = a_star(b, rob_pos, first_package)
+	im[first_package[1], first_package[0], :] = 125
 	
 
 	# run_multiple_paths(rob_pos, [(50,40), (10, 40)], [(30,18), (40,18)], b)

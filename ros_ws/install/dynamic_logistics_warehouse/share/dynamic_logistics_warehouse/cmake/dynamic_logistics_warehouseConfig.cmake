@@ -67,14 +67,14 @@ set(dynamic_logistics_warehouse_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(dynamic_logistics_warehouse_SOURCE_PREFIX /home/yaron/ros_ws/src/dynamic_logistics_warehouse)
-  set(dynamic_logistics_warehouse_DEVEL_PREFIX /home/yaron/ros_ws/build/dynamic_logistics_warehouse/devel)
+  set(dynamic_logistics_warehouse_SOURCE_PREFIX /home/yaron/FinalProjectCogRob/ros_ws/src/dynamic_logistics_warehouse)
+  set(dynamic_logistics_warehouse_DEVEL_PREFIX /home/yaron/FinalProjectCogRob/ros_ws/build/dynamic_logistics_warehouse/devel)
   set(dynamic_logistics_warehouse_INSTALL_PREFIX "")
   set(dynamic_logistics_warehouse_PREFIX ${dynamic_logistics_warehouse_DEVEL_PREFIX})
 else()
   set(dynamic_logistics_warehouse_SOURCE_PREFIX "")
   set(dynamic_logistics_warehouse_DEVEL_PREFIX "")
-  set(dynamic_logistics_warehouse_INSTALL_PREFIX /home/yaron/ros_ws/install/dynamic_logistics_warehouse)
+  set(dynamic_logistics_warehouse_INSTALL_PREFIX /home/yaron/FinalProjectCogRob/ros_ws/install/dynamic_logistics_warehouse)
   set(dynamic_logistics_warehouse_PREFIX ${dynamic_logistics_warehouse_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/yaron/ros_ws/install/dynamic_logistics_warehouse/lib;/opt/ros/noetic/lib)
+    foreach(path /home/yaron/FinalProjectCogRob/ros_ws/install/dynamic_logistics_warehouse/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

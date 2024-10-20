@@ -26,14 +26,16 @@ def main():
 	#         choosen_path = paths[points]
 
 	rospy.loginfo(f"0,0 : {ros_listener.xy_to_map(0, 0)}")
-	rospy.loginfo(f"rob_pos {ros_listener.map_to_xy(rob_pos[0], rob_pos[1])}")
+	rospy.loginfo(f"rob_pos {ros_listener.map_to_xy(rob_pos[1], rob_pos[0])}")
 	first_package = ros_listener.xy_to_map(-3.8, 5.15)
+	first_package = ros_listener.xy_to_map(24.7, -0.9389)
+	
 	rospy.loginfo(f"first pack {first_package}")
 	rospy.loginfo("planning path")
 	path, cost = a_star.a_star(b_image, (rob_pos[1], rob_pos[0]), (first_package[1], first_package[0]))
 	rospy.loginfo(f" Cost: {cost}")
 	robot_controller = turtlebot_controller.TurtleBotController()
-	# p = [((18,26), (1,0), 0), ((19,26), (1,0), 2)]#, ((18,28), (0,1), 1)]#, ((18,29), (0,1), 1)]
+	# path = [((72,102), (1,0), 0), ((75,102), (1,0), 1)]#, ((18,28), (0,1), 1)]#, ((18,29), (0,1), 1)]
 	# # p = [((18,27), (0,1), 0), ((18,28), (0,1), 1)]#, ((18,29), (0,1), 1)]
 	robot_controller.run_path(path)
 	rospy.spin()

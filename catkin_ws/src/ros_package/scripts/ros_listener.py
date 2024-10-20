@@ -11,7 +11,7 @@ import json
 import cv2
 
 # Parameters
-GRID_SIZE = 0.1
+GRID_SIZE = 0.4
 min_x = np.inf
 max_x = -np.inf
 max_y = -np.inf
@@ -58,30 +58,31 @@ def model_states_callback(data):
 
     image_width = int((max_x - min_x) // GRID_SIZE)
     image_height = int((max_y - min_y) // GRID_SIZE)
-
     image = np.ones((image_width, image_height, 3), dtype=np.uint8) * 255
-
     for i in range(len(data.name)):
         model_name = data.name[i]
         model_position = data.pose[i].position
         if "actor" not in model_name and "Untitled" not in model_name and "waybot" not in model_name and \
             "Lamp" not in model_name and "Ground" not in model_name and "package" not in model_name and "waffle" not in model_name:
             if model_name.split('_')[-3] in bb.keys():
-                bounding_box = bb[model_name.split('_')[-3]] + waffle_bounding_box
+                bounding_box = bb[model_name.split('_')[-3]]
+                bounding_box = [bounding_box[0]+ waffle_bounding_box[0], bounding_box[1]+ waffle_bounding_box[1]]
                 left_x = np.floor((model_position.x -bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
                 right_x = np.ceil((model_position.x + bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
                 top_y = np.floor((model_position.y - bounding_box[1]/2+ abs(min_y))// GRID_SIZE).astype(int)
                 bot_y = np.ceil((model_position.y  + bounding_box[1]/2+ abs(min_y)) // GRID_SIZE) .astype(int)
                 image[left_x: right_x, top_y: bot_y, :] = 0
             else:
-                bounding_box = bb[model_name.split('_')[-2]] + waffle_bounding_box
-                left_x = np.floor((model_position.x -bounding_box[0]/2) // GRID_SIZE).astype(int)
-                right_x = np.ceil((model_position.x + bounding_box[0]/2) // GRID_SIZE).astype(int)
-                top_y = np.floor((model_position.y - bounding_box[1]/2) // GRID_SIZE).astype(int)
-                bot_y = np.ceil((model_position.y  + bounding_box[1]/2) // GRID_SIZE).astype(int)
-                image[left_x: right_x, bot_y: top_y, :] = 0
+                bounding_box = bb[model_name.split('_')[-2]]
+                bounding_box = [bounding_box[0]+ waffle_bounding_box[0], bounding_box[1]+ waffle_bounding_box[1]]
+                left_x = np.floor((model_position.x -bounding_box[0]/2 + abs(min_x)) // GRID_SIZE).astype(int)
+                right_x = np.ceil((model_position.x + bounding_box[0]/2 + abs(min_x)) // GRID_SIZE).astype(int)
+                top_y = np.floor((model_position.y - bounding_box[1]/2 + abs(min_y)) // GRID_SIZE).astype(int)
+                bot_y = np.ceil((model_position.y  + bounding_box[1]/2 + abs(min_y)) // GRID_SIZE).astype(int)
+                image[left_x: right_x, top_y: bot_y, :] = 0
         elif "actor" in model_name:
-                bounding_box = bb["actor"] + waffle_bounding_box
+                bounding_box = bb["actor"] 
+                bounding_box = [bounding_box[0]+ waffle_bounding_box[0], bounding_box[1]+ waffle_bounding_box[1]]   
                 left_x = np.floor((model_position.x -bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
                 right_x = np.ceil((model_position.x + bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
                 top_y = np.floor((model_position.y - bounding_box[1]/2+ abs(min_y))// GRID_SIZE).astype(int)
@@ -89,7 +90,7 @@ def model_states_callback(data):
                 image[left_x: right_x, top_y: bot_y, 1:] = 0
                 # image[left_x: right_x, top_y: bot_y, 0] = 255
         elif "package" in model_name:
-                bounding_box = [0.3,0.3] + waffle_bounding_box
+                bounding_box = [0.3 +waffle_bounding_box[0],0.3 + waffle_bounding_box[1]]
                 left_x = np.floor((model_position.x -bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
                 right_x = np.ceil((model_position.x + bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
                 top_y = np.floor((model_position.y - bounding_box[1]/2+ abs(min_y))// GRID_SIZE).astype(int)
@@ -119,7 +120,8 @@ def create_map():
 
 if __name__ == '__main__':
     try:
-         create_map()
+        rospy.init_node("map_creator")
+        create_map()
     except rospy.ROSInterruptException:
         pass
 
