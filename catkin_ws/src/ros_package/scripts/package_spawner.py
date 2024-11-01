@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+import os
 import rospy
 import random
 from gazebo_msgs.srv import SpawnModel
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Float32MultiArray
 
+NUM_PACKAGES = 2
 
 def spawn_model_at_random_location():
     # rospy.init_node('spawn_model_node')
@@ -30,14 +32,16 @@ def spawn_model_at_random_location():
         (2.48, 50.64, 0, 0, 0),
     ]
     # Select a random location
-    selected_location = random.sample(locations,1)
+    selected_location = random.sample(locations,NUM_PACKAGES)
     selected_target_location = [random.sample(target_locations,1) for l in selected_location]
 
     # Set orientation if necessary
 
     # Load the model XML
     model_xml = ''
-    with open('/home/yaron/catkin_ws/src/models/box/model.sdf', 'r') as xml_file:
+    script_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    file_name = os.path.join(script_dir, "models/box/model.sdf")
+    with open(file_name, 'r') as xml_file:
         model_xml = xml_file.read()
 
     # Wait for the service to be available

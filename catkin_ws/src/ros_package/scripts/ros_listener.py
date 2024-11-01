@@ -20,7 +20,9 @@ min_y = np.inf
 import os 
 def load_BB():
     global bb
-    with open("/home/yaron/FinalProjectCogRob/catkin_ws/src/ros_package/scripts/bounding_boxes.json") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, "bounding_boxes.json")
+    with open(file_path, 'r') as f:
         bb = json.load(f)
     return bb
 
@@ -43,7 +45,7 @@ def vel_to_xy(vel):
 def model_states_callback(data):
     global bb, min_x, max_x, min_y, max_y
 
-    waffle_bounding_box = [0.3, 0.3]
+    waffle_bounding_box = [0.4, 0.4]
 
     for i in range(len(data.name)):
         model_name = data.name[i]
