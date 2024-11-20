@@ -86,9 +86,6 @@ def a_star(grid, start, goal, start_direction = (1,0), v_max=0.26, v_min=0.1, la
                     tentative_g_cost = g_cost[(current, current_dir, v_current)] + total_move_cost
                     tentative_time_cost = t_cost[(current, current_dir, v_current)] + move_time_cost
                     tentative_energy_cost = e_cost[(current, current_dir, v_current)] + move_energy_cost
-
-
-                    # tentative_g_cost = heuristic(neighbor, goal)
                     
                     if (neighbor, direction, v_next) not in g_cost or tentative_g_cost < g_cost[(neighbor, direction, v_next)]:
                         came_from[(neighbor, direction, v_next)] = (current, current_dir, v_current)
@@ -112,7 +109,7 @@ def a_star(grid, start, goal, start_direction = (1,0), v_max=0.26, v_min=0.1, la
 
                         # Tentative g_cost for the neighbor
                         tentative_g_cost = g_cost[(current, current_dir, v_current)] + total_move_cost
-                        # tentative_g_cost = heuristic(neighbor, goal)
+
                         if (neighbor, direction, v_next) not in g_cost or tentative_g_cost < g_cost[(neighbor, direction, v_next)]:
                             came_from[(neighbor, direction, v_next)] = (current, current_dir, v_current)
                             g_cost[(neighbor, direction, v_next)] = tentative_g_cost
@@ -123,7 +120,7 @@ def a_star(grid, start, goal, start_direction = (1,0), v_max=0.26, v_min=0.1, la
                                                       tentative_time_cost, tentative_energy_cost))
     return None, None, None, None  # Return None if there is no path
 
-def w_a_star(grid, start, goal, start_direction  = (1,0), v_max=9.0, v_min=1):
+def w_a_star(grid, start, goal, start_direction  = (1,0), v_max=2.6, v_min=0.1):
     """Run weighted A* for balancing different heuristics, running diffenet lamnda factor between the
     heuristics and finding the best compremise between the two objectivs.
     """
