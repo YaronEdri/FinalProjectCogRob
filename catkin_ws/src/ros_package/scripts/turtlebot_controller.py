@@ -7,7 +7,6 @@ from gazebo_msgs.msg import ModelStates
 import numpy as np
 import math
 import ros_listener
-import a_star
 import copy
 
 class TurtleBotController:
@@ -269,21 +268,5 @@ class TurtleBotController:
 if __name__ == '__main__':
     try:
         controller = TurtleBotController()
-        
-        # Example usage:
-        controller.adjust_linear_velocity(0.2)  # Increase linear speed
-        rospy.sleep(2)  # Move for 2 seconds
-        
-        controller.turn_by_direction((1, 0), (0, 1))  # Turn from right (east) to up (north)
-        rospy.sleep(1)
-
-        controller.adjust_linear_velocity(-0.1)  # Decrease linear speed
-        rospy.sleep(2)  # Move for 2 seconds
-
-        controller.turn_by_direction((0, 1), (-1, 0))  # Turn from up (north) to left (west)
-
-        # Stop the robot after commands
-        controller.stop_robot()
-
     except rospy.ROSInterruptException:
         pass

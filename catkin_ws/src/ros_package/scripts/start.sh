@@ -3,7 +3,7 @@
 # Source the ROS setup script to set up the environment
 source /opt/ros/noetic/setup.bash  # Adjust the ROS version if necessary
 source ~/FinalProjectCogRob/catkin_ws/devel/setup.bash  # Adjust this to your workspace
-
+export TURTLEBOT3_MODEL=waffle
 
 # Run the roslaunch command to start the warehouse_start launch file
 roslaunch ros_package warehouse_start.launch 
