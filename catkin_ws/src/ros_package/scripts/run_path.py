@@ -30,8 +30,6 @@ def main():
 		step_path = paths[step]
 		rospy.loginfo(f"Going from : {step}")
 		robot_controller.run_path(step_path)
-	# p = [((18, 25), (1, 0), 0), ((19, 25), (1, 0), 1), ((21, 25), (1, 0), 1), ((22, 25), (1, 0), 1), ((22, 26), (0, 1), 1), ((22, 27), (0, 1), 1), ((22, 28), (0, 1), 2), ((22, 35), (0, 1), 2)]
-	# robot_controller.run_path(p)
 	rospy.spin()
 
 if __name__ == '__main__':

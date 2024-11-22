@@ -88,7 +88,6 @@ def model_states_callback(data):
                 top_y = np.floor((model_position.y - bounding_box[1]/2+ abs(min_y))// GRID_SIZE).astype(int)
                 bot_y = np.ceil((model_position.y  + bounding_box[1]/2+ abs(min_y)) // GRID_SIZE) .astype(int)
                 image[left_x - 1: right_x + 1, top_y - 1: bot_y + 1, 1:] = 0
-                # image[left_x: right_x, top_y: bot_y, 0] = 255
         elif "package" in model_name:
                 bounding_box = [0.3 +waffle_bounding_box[0],0.3 + waffle_bounding_box[1]]
                 left_x = np.floor((model_position.x -bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)

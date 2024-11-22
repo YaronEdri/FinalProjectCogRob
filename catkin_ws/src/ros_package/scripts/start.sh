@@ -9,7 +9,7 @@ export TURTLEBOT3_MODEL=waffle
 roslaunch ros_package warehouse_start.launch 
 
 # Wait for the launch file to finish starting up
-# sleep 10  # Adjust the sleep time if necessary
+sleep 10  # Adjust the sleep time if necessary
 
 echo "Launch file started. Now running the run_path node..."
 # Run the ROS node ros_listener from the ros_package

@@ -5,12 +5,10 @@ import rospy
 import random
 from gazebo_msgs.srv import SpawnModel
 from geometry_msgs.msg import Pose
-from std_msgs.msg import Float32MultiArray
 
 NUM_PACKAGES = 2
 
 def spawn_model_at_random_location():
-    # rospy.init_node('spawn_model_node')
 
     # List of possible locations (x, y, z, roll, pitch, yaw)
     locations = [
