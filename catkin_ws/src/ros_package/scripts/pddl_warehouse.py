@@ -1,4 +1,5 @@
 from unified_planning.shortcuts import *
+from unified_planning.io import PDDLWriter
 from unified_planning.engines import PlanGenerationResultStatus
 import rospy
 
@@ -81,9 +82,6 @@ def get_actions(plan, ac):
     for a in plan.actions:
         plan_locations += ac[a.action] 
     return plan_locations
-        
-
-
 
 if __name__ == '__main__':
     pass

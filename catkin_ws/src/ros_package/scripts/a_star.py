@@ -1,6 +1,7 @@
 import numpy as np
 import heapq
 import cv2
+import matplotlib.pyplot as plt
 
 # Constants for movement directions (dx, dy)
 MOVES = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Right, Down, Left, Up
@@ -22,12 +23,6 @@ def linear_energy_cost(v_0, v_1):
     acceleration = (v_1 ** 2 - v_0 ** 2) / 0.8
     energy_cost = 0.000544 * (acceleration**2) + 0.04355 * acceleration
     return energy_cost * 2000 + 1.35
-
-def angular_time_cost(v_0, v_1):
-    return
-
-def angular_energy_cost(v_0, v_1):
-    return
 
 def check_valid_neighbor(grid, neighbor, current, current_dir, direction):
     b = 0 <= neighbor[0] < grid.shape[0] and 0 <= neighbor[1] < grid.shape[1] and grid[neighbor[0], neighbor[1]] == 1\
@@ -82,8 +77,8 @@ def a_star(grid, start, goal, start_direction = (1,0), v_max=0.26, v_min=0.1, la
                         continue
                     v_next = v_min  # Start with minimum velocity after turning
                     # Calculate costs
-                    move_time_cost = angular_time_cost(v_current, v_next)
-                    move_energy_cost = angular_energy_cost(v_current, v_next)
+                    move_time_cost = linear_time_cost(v_current, v_next)
+                    move_energy_cost = linear_energy_cost(v_current, v_next)
                     total_move_cost = (1- lambda_factor) * move_time_cost + lambda_factor * move_energy_cost
                     
                     # Tentative g_cost for the neighbor
