@@ -105,9 +105,15 @@ FinalProjectCogRob/
 ---
 
 ## **How to Run**
-
-1. Start the project by running the `start.sh` script:
+1. On the first terminal, start the warehouse environment by running:
+  ```bash
+  source /opt/ros/noetic/setup.bash
+  source ~/FinalProjectCogRob/ros_ws/install/setup.bash
+  roslaunch dynamic_logistics_warehouse logistics_warehouse.launch
+  ```
+2. On the second terminal, start the project by running the `start.sh` script:
    ```bash
+   cd FinalProjectCogRob/catkin_ws/src/ros_package/scripts
    ./start.sh
    ```
    This:
