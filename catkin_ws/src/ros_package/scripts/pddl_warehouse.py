@@ -1,5 +1,4 @@
 from unified_planning.shortcuts import *
-from unified_planning.io import PDDLWriter
 from unified_planning.engines import PlanGenerationResultStatus
 import rospy
 
@@ -8,7 +7,6 @@ def create_plan(costs: dict, packages: list, targets: list, rob_pos: tuple):
     Return the plan in the form of location to go.
     """
     Location = UserType("Location")
-    # Package = Object("Package", Location)
     Delivered = Fluent("Delivered", BoolType(), t = Location)
     At = Fluent("At", BoolType(), l = Location)
     warehouse_problem = Problem("Warehouse_Problem")
@@ -88,11 +86,7 @@ def get_actions(plan, ac):
 
 
 if __name__ == '__main__':
-    Locations = [(130, 26), (135, 45), (76, 95), (92, 25), (38, 8)]
-    Targets = [(151, 92), (151, 92), (152, 24), (70, 70), (151, 92)]
-    Rob_pos =  (25, 18)
-    costs = {((25, 18), (135, 45)): 4901.666666666665, ((135, 45), (151, 92)): 3668.999999999998, ((25, 18), (130, 26)): 4023.666666666665, ((130, 26), (151, 92)): 3908.333333333331, ((25, 18), (76, 95)): 4806.999999999998, ((76, 95), (152, 24)): 5164.0, ((25, 18), (38, 8)): 1700.0000000000002, ((38, 8), (151, 92)): 6318.000000000003, ((25, 18), (92, 25)): 2971.3333333333335, ((92, 25), (70, 70)): 3879.3333333333326, ((151, 92), (130, 26)): 3963.6666666666647, ((151, 92), (76, 95)): 2544.9999999999995, ((151, 92), (38, 8)): 6318.000000000003, ((151, 92), (92, 25)): 4786.666666666665, ((151, 92), (135, 45)): 3453.0000000000005, ((152, 24), (135, 45)): 2063.3333333333335, ((152, 24), (130, 26)): 1455.6666666666665, ((152, 24), (38, 8)): 4395.666666666664, ((152, 24), (92, 25)): 2203.0, ((70, 70), (135, 45)): 4294.666666666665, ((70, 70), (130, 26)): 4285.333333333331, ((70, 70), (76, 95)): 2260.333333333334, ((70, 70), (38, 8)): 3773.666666666665}
-    create_plan(costs=costs, packages=Locations, targets=Targets, rob_pos=Rob_pos)
+    pass
 
     
 

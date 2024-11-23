@@ -2,10 +2,8 @@
 
 import rospy
 from gazebo_msgs.msg import ModelStates
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
 import numpy as np
-from PIL import Image as PILImage
+
 
 import json
 import cv2
@@ -73,15 +71,15 @@ def model_states_callback(data):
                 right_x = np.ceil((model_position.x + bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
                 top_y = np.floor((model_position.y - bounding_box[1]/2+ abs(min_y))// GRID_SIZE).astype(int)
                 bot_y = np.ceil((model_position.y  + bounding_box[1]/2+ abs(min_y)) // GRID_SIZE) .astype(int)
-                image[left_x: right_x, top_y: bot_y, :] = 0
+                image[left_x - 1: right_x + 1, top_y - 1: bot_y + 1, :] = 0
             else:
                 bounding_box = bb[model_name.split('_')[-2]]
                 bounding_box = [bounding_box[0]+ waffle_bounding_box[0], bounding_box[1]+ waffle_bounding_box[1]]
-                left_x = np.floor((model_position.x -bounding_box[0]/2 + abs(min_x)) // GRID_SIZE).astype(int)
+                left_x = np.floor((model_position.x - bounding_box[0]/2 + abs(min_x)) // GRID_SIZE).astype(int)
                 right_x = np.ceil((model_position.x + bounding_box[0]/2 + abs(min_x)) // GRID_SIZE).astype(int)
                 top_y = np.floor((model_position.y - bounding_box[1]/2 + abs(min_y)) // GRID_SIZE).astype(int)
                 bot_y = np.ceil((model_position.y  + bounding_box[1]/2 + abs(min_y)) // GRID_SIZE).astype(int)
-                image[left_x: right_x, top_y: bot_y, :] = 0
+                image[left_x - 1: right_x + 1, top_y - 1: bot_y + 1, :] = 0
         elif "actor" in model_name:
                 bounding_box = bb["actor"] 
                 bounding_box = [bounding_box[0]+ waffle_bounding_box[0], bounding_box[1]+ waffle_bounding_box[1]]   
@@ -89,8 +87,7 @@ def model_states_callback(data):
                 right_x = np.ceil((model_position.x + bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
                 top_y = np.floor((model_position.y - bounding_box[1]/2+ abs(min_y))// GRID_SIZE).astype(int)
                 bot_y = np.ceil((model_position.y  + bounding_box[1]/2+ abs(min_y)) // GRID_SIZE) .astype(int)
-                image[left_x: right_x, top_y: bot_y, 1:] = 0
-                # image[left_x: right_x, top_y: bot_y, 0] = 255
+                image[left_x - 1: right_x + 1, top_y - 1: bot_y + 1, 1:] = 0
         elif "package" in model_name:
                 bounding_box = [0.3 +waffle_bounding_box[0],0.3 + waffle_bounding_box[1]]
                 left_x = np.floor((model_position.x -bounding_box[0]/2 + abs(min_x) )// GRID_SIZE).astype(int)
@@ -107,18 +104,14 @@ def model_states_callback(data):
     cv2.imwrite('image.png', image)
 
     rospy.loginfo("Map created")
-    # rospy.signal_shutdown("Callback processed, shutting down the node.")
     return image, rob_pos
 
 def create_map():
-    # global image_pub
     rospy.loginfo("map_creator started")
 
-    # rospy.init_node('model_map_publisher', anonymous=True)
     load_BB()
     model_states = rospy.wait_for_message("/gazebo/model_states", ModelStates)
     return model_states_callback(model_states)
-    # rospy.spin()
 
 if __name__ == '__main__':
     try:

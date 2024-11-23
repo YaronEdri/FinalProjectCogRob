@@ -7,7 +7,7 @@ import a_star
 import cv2
 import turtlebot_controller
 import pddl_warehouse
-
+import controller
 
 def main():
 	rospy.init_node('run_path')
@@ -25,14 +25,11 @@ def main():
 	costs, paths = a_star.run_multiple_paths(rob_pos, locations, targets, b_image)
 	
 	plan = pddl_warehouse.create_plan(costs, locations, targets, rob_pos)
-
 	robot_controller = turtlebot_controller.TurtleBotController()
 	for step in plan:
 		step_path = paths[step]
 		rospy.loginfo(f"Going from : {step}")
 		robot_controller.run_path(step_path)
-	# p = [((18, 25), (1, 0), 0), ((19, 25), (1, 0), 1), ((21, 25), (1, 0), 1), ((22, 25), (1, 0), 1), ((22, 26), (0, 1), 1), ((22, 27), (0, 1), 1), ((22, 28), (0, 1), 2), ((22, 35), (0, 1), 2)]
-	# robot_controller.run_path(p)
 	rospy.spin()
 
 if __name__ == '__main__':

@@ -7,7 +7,6 @@ from gazebo_msgs.msg import ModelStates
 import numpy as np
 import math
 import ros_listener
-import a_star
 import copy
 
 class TurtleBotController:
@@ -17,9 +16,6 @@ class TurtleBotController:
     ACTOR_THRESH  = 1.1
 
     def __init__(self):
-        # Initialize the node
-        # rospy.init_node('turtlebot_controller', anonymous=True)
-        
         # Publisher for velocity commands
         self.vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         # Subscriber for odometry data
@@ -70,9 +66,6 @@ class TurtleBotController:
             self.buff_vel = copy.deepcopy(self.velocity)
             self.stop_robot()
         self.close_actor = check
-        # self.handle_dynamic_object(None, None)
-        #     rospy.loginfo("Dynmic object detected, stopping.")
-        
 
 
     def handle_dynamic_object(self):
@@ -106,7 +99,7 @@ class TurtleBotController:
         target_yaw = self.normalize_angle(target_yaw)
 
         # Set angular speed
-        angular_speed = 0.3  # rad/s
+        angular_speed = 0.3  # rad/s $$$$$$$$$$$$$$$$$$
 
         # Keep turning until the target yaw is achieved
         while not rospy.is_shutdown():
@@ -205,7 +198,6 @@ class TurtleBotController:
             self.handle_dynamic_object()
             self.rate.sleep()
             distance = np.abs(np.linalg.norm((np.array(self.current_loc) - np.array(des)) * np.flip(np.array(direction))))
-            # distance = math.sqrt((self.current_loc[0] - des[0])**2 + (self.current_loc[1] - des[1]) ** 2)
             if distance > 0.1 :
                 self.correct_heading(des, direction)
             else:
@@ -240,9 +232,7 @@ class TurtleBotController:
 
         # Keep turning until the yaw error is small enough
         if abs(yaw_error) > math.radians(1):  # 1 degree tolerance
-            # self.velocity.angular.z = (yaw_error / 360)
-            # self.velocity.angular.z = np.sign(yaw_error)  * 0.001
-            self.velocity.angular.z = yaw_error * 0.004
+            self.velocity.angular.z = yaw_error * 0.004  #$$$$$$$$$$$$$$$$$$$$$$$$$$
             self.vel_pub.publish(self.velocity)
             # Sleep to maintain the loop rate
             self.rate.sleep()
@@ -256,7 +246,6 @@ class TurtleBotController:
             rospy.sleep(1)
             vel_change = ros_listener.vel_to_xy((step[2] - previous_step[2])) * self.VELOCITY_COEFF
             self.adjust_linear_velocity(vel_change)
-            # rospy.sleep(10)
             des = ros_listener.map_to_xy(step[0][0], step[0][1])
             rospy.loginfo(f"Des pixel {step[0]}")
             detour = path[min(i+5, len(path) - 1)]
@@ -269,21 +258,5 @@ class TurtleBotController:
 if __name__ == '__main__':
     try:
         controller = TurtleBotController()
-        
-        # Example usage:
-        controller.adjust_linear_velocity(0.2)  # Increase linear speed
-        rospy.sleep(2)  # Move for 2 seconds
-        
-        controller.turn_by_direction((1, 0), (0, 1))  # Turn from right (east) to up (north)
-        rospy.sleep(1)
-
-        controller.adjust_linear_velocity(-0.1)  # Decrease linear speed
-        rospy.sleep(2)  # Move for 2 seconds
-
-        controller.turn_by_direction((0, 1), (-1, 0))  # Turn from up (north) to left (west)
-
-        # Stop the robot after commands
-        controller.stop_robot()
-
     except rospy.ROSInterruptException:
         pass
