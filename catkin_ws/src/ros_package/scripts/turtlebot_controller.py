@@ -99,7 +99,7 @@ class TurtleBotController:
         target_yaw = self.normalize_angle(target_yaw)
 
         # Set angular speed
-        angular_speed = 0.3  # rad/s $$$$$$$$$$$$$$$$$$
+        angular_speed = 0.21  # rad/s from physical calculations
 
         # Keep turning until the target yaw is achieved
         while not rospy.is_shutdown():
@@ -232,7 +232,7 @@ class TurtleBotController:
 
         # Keep turning until the yaw error is small enough
         if abs(yaw_error) > math.radians(1):  # 1 degree tolerance
-            self.velocity.angular.z = yaw_error * 0.004  #$$$$$$$$$$$$$$$$$$$$$$$$$$
+            self.velocity.angular.z = yaw_error * 0.004
             self.vel_pub.publish(self.velocity)
             # Sleep to maintain the loop rate
             self.rate.sleep()

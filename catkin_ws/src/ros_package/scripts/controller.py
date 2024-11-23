@@ -166,17 +166,94 @@ class TurtleBotController:
             # Sleep and wait for the next loop
             self.rate.sleep()
 
-    def keep_distance_from_actors(self):
-        for distance in self.dynamic_actors_distances.values():
-            if distance < 1:
-                self.stop()
+    def xy_location_to_binary_location(self,location):
+        x, y = location
+        x = int((x + 10) // 0.4)
+        y = int((y + 7) // 0.4)
+        return (x, y)
+
+    def binary_location_to_xy_location(self,binary_location):
+        x, y = binary_location
+        x = (x * 0.4) - 10
+        y = (y * 0.4) - 7
+        return (x, y)
+
+    def binary_straight_path(self,current_location, target_location):
+        current_y, current_x = current_location
+        target_x, target_y = target_location
+
+        # Bresenham's Line Algorithm
+        delta_x = abs(target_x - current_x)
+        delta_y = abs(target_y - current_y)
+        sx = 1 if current_x < target_x else -1
+        sy = 1 if current_y < target_y else -1
+        err = delta_x - delta_y
+
+        points = []
+        while True:
+            points.append((current_x, current_y))
+            if current_x == target_x and current_y == target_y:
                 break
+            e2 = 2 * err
+            if e2 > -delta_y:
+                err -= delta_y
+                current_x += sx
+            if e2 < delta_x:
+                err += delta_x
+                current_y += sy
+
+        return points
+
+    def route_to_target(self,current_location, target_location):
+
+        def find_closest_free_point(current_location, target_location):
+
+            y, x = current_location
+            points = [(x,y+1),(x,y-1),(x+1,y+1),(x+1,y),(x+1,y-1),(x-1,y+1),(x-1,y),(x-1,y-1)]
+            free_points = []
+            for i in range(8):
+                x, y = points[i]
+                if self.binary_image[int(x)][int(y)] == 0:
+                    free_points.append((x, y))
+
+            if len(free_points) == 0:
+                for i in range(8):
+                    free_points.append(find_closest_free_point(points[i], target_location))
+
+            min_distance = np.inf
+            closest_free_point = (0,0)
+            for i in range(len(free_points)):
+                current_x, current_y = free_points[i]
+                target_x, target_y = target_location
+                distance = math.sqrt((target_x - current_x) ** 2 + (target_y - current_y) ** 2)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_free_point = free_points[i]
+
+            return closest_free_point
+
+        def keep_distance_from_actors():
+            for distance in self.dynamic_actors_distances.values():
+                if distance < 1:
+                    find_closest_free_point(current_location, target_location)
+                    break
+
+        keep_distance_from_actors()
+        straight_path = self.binary_straight_path(current_location, target_location)
+
+        for i in range(len(straight_path)-1):
+            x , y = straight_path[i]
+            if self.binary_image[x][y] == 1:
+                # find the closest free point
+                closest_free_point = find_closest_free_point((y,x),target_location)
+                return np.hstack((straight_path[:i],self.route_to_target(closest_free_point, target_location)))
+
+        return straight_path
 
     def run_path(self, path):
         for step in path:
             x,y = ros_listener.map_to_xy(step[0][0], step[0][1])
-            self.move_to_target((x,y),0.2,0.2)
-            self.stop()
+            self.route_to_target(self.current_location,(x,y))
         rospy.loginfo("Reached destination")
 
 
