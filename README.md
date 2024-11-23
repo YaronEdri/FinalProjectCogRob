@@ -1,6 +1,7 @@
 ### README: Autonomous Warehouse Robot Project
 
-![Video](video_simulation.mp4)
+---
+[![Watch the video](https://img.youtube.com/vi/TQ_t94ZJYGo/0.jpg)](https://youtu.be/TQ_t94ZJYGo)
 ---
 
 ## **Project Overview**
