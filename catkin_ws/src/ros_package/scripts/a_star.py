@@ -21,8 +21,8 @@ def time_cost(v_0, v_1):
 
 def energy_cost(v_0, v_1):
     """Energy cost for moving from velocity v_0 to velocity v_1 for one grid unit"""
-    acceleration = (v_1 ** 2 - v_0 ** 2) / 0.8
-    energy_cost = 0.000544 * (acceleration**2) + 0.04355 * acceleration
+    acceleration = (v_1 ** 2 - v_0 ** 2) / 0.8 #By physical kinematics formula and grid size 0.4
+    energy_cost = 0.000544 * (acceleration**2) + 0.04355 * acceleration #parabolic formula
     return energy_cost * 2000 + 1.35
 
 def check_valid_neighbor(grid, neighbor, current, current_dir, direction):
