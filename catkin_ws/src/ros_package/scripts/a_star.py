@@ -2,7 +2,6 @@ import numpy as np
 import heapq
 import cv2
 import matplotlib.pyplot as plt
-
 # Constants for movement directions (dx, dy)
 MOVES = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Right, Down, Left, Up
 LAMBDAS = [0.2, 0.4, 0.6, 0.8]
@@ -173,8 +172,5 @@ def convert_map_to_grid(image, with_actors = False):
     return binary_image
 
 if __name__ == "__main__":
-    try:
-        im = cv2.imread("/home/yaron/FinalProjectCogRob/catkin_ws/image.png")
-        b = convert_map_to_grid(im)
-    except FileNotFoundError:
-        pass
+    im = cv2.imread("/home/yaron/FinalProjectCogRob/catkin_ws/image.png")
+    b = convert_map_to_grid(im)
