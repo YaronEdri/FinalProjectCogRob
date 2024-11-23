@@ -2,27 +2,28 @@ import numpy as np
 import heapq
 import cv2
 import matplotlib.pyplot as plt
+
 # Constants for movement directions (dx, dy)
 MOVES = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Right, Down, Left, Up
 LAMBDAS = [0.2, 0.4, 0.6, 0.8]
-THRESHOLD_TIME  = 0.4
-THRESHOLD_ENERGEY= 0.2
+THRESHOLD_TIME = 0.4
+THRESHOLD_ENERGEY = 0.2
+
 
 # Helper functions
-def distance_cost(a, b):
+def heuristic(a, b):
     """Heuristic function for A* (Manhattan distance)"""
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-def linear_time_cost(v_0, v_1):
+def time_cost(v_0, v_1):
     """Time cost for moving from velocity v_0 to velocity v_1 for one grid unit"""
     return 0.8 / (v_0 + v_1)
 
-def linear_energy_cost(v_0, v_1):
+def energy_cost(v_0, v_1):
     """Energy cost for moving from velocity v_0 to velocity v_1 for one grid unit"""
     acceleration = (v_1 ** 2 - v_0 ** 2) / 0.8
     energy_cost = 0.000544 * (acceleration**2) + 0.04355 * acceleration
     return energy_cost * 2000 + 1.35
-
 
 def check_valid_neighbor(grid, neighbor, current, current_dir, direction):
     b = 0 <= neighbor[0] < grid.shape[0] and 0 <= neighbor[1] < grid.shape[1] and grid[neighbor[0], neighbor[1]] == 1 \
@@ -37,7 +38,7 @@ def check_valid_neighbor(grid, neighbor, current, current_dir, direction):
     return b
 
 
-def a_star(grid, start, goal, start_direction=(1, 0), v_max=0.26, v_min=0.1, lambda_factor=1.0):
+def a_star(grid, start, goal, start_direction=(1, 0), v_max=9.0, v_min=1, lambda_factor=1.0):
     """A* algorithm to find the optimal path considering time and energy costs"""
 
     # Priority queue
@@ -77,8 +78,8 @@ def a_star(grid, start, goal, start_direction=(1, 0), v_max=0.26, v_min=0.1, lam
                         continue
                     v_next = v_min  # Start with minimum velocity after turning
                     # Calculate costs
-                    move_time_cost = linear_time_cost(v_current, v_next)
-                    move_energy_cost = linear_energy_cost(v_current, v_next)
+                    move_time_cost = time_cost(v_current, v_next)
+                    move_energy_cost = energy_cost(v_current, v_next) + 15
                     total_move_cost = (1 - lambda_factor) * move_time_cost + lambda_factor * move_energy_cost
 
                     # Tentative g_cost for the neighbor
@@ -86,15 +87,13 @@ def a_star(grid, start, goal, start_direction=(1, 0), v_max=0.26, v_min=0.1, lam
                     tentative_time_cost = t_cost[(current, current_dir, v_current)] + move_time_cost
                     tentative_energy_cost = e_cost[(current, current_dir, v_current)] + move_energy_cost
 
-                    # tentative_g_cost = heuristic(neighbor, goal)
-
                     if (neighbor, direction, v_next) not in g_cost or tentative_g_cost < g_cost[
                         (neighbor, direction, v_next)]:
                         came_from[(neighbor, direction, v_next)] = (current, current_dir, v_current)
                         g_cost[(neighbor, direction, v_next)] = tentative_g_cost
                         t_cost[(neighbor, direction, v_next)] = tentative_time_cost
                         e_cost[(neighbor, direction, v_next)] = tentative_energy_cost
-                        f_cost = tentative_g_cost + distance_cost(neighbor, goal)
+                        f_cost = tentative_g_cost + heuristic(neighbor, goal)
                         heapq.heappush(open_set, (f_cost, neighbor, direction,
                                                   v_next, tentative_time_cost, tentative_energy_cost))
 
@@ -103,28 +102,28 @@ def a_star(grid, start, goal, start_direction=(1, 0), v_max=0.26, v_min=0.1, lam
                         v_next = max(v_min, min(v_current + v_add, v_max))  # Accelerate up to v_max
 
                         # Calculate costs
-                        move_time_cost = linear_time_cost(v_current, v_next)
-                        move_energy_cost = linear_energy_cost(v_current, v_next)
+                        move_time_cost = time_cost(v_current, v_next)
+                        move_energy_cost = energy_cost(v_current, v_next)
                         total_move_cost = (1 - lambda_factor) * move_time_cost + lambda_factor * move_energy_cost
                         tentative_time_cost = t_cost[(current, current_dir, v_current)] + move_time_cost
                         tentative_energy_cost = e_cost[(current, current_dir, v_current)] + move_energy_cost
 
                         # Tentative g_cost for the neighbor
                         tentative_g_cost = g_cost[(current, current_dir, v_current)] + total_move_cost
-                        # tentative_g_cost = heuristic(neighbor, goal)
+
                         if (neighbor, direction, v_next) not in g_cost or tentative_g_cost < g_cost[
                             (neighbor, direction, v_next)]:
                             came_from[(neighbor, direction, v_next)] = (current, current_dir, v_current)
                             g_cost[(neighbor, direction, v_next)] = tentative_g_cost
                             t_cost[(neighbor, direction, v_next)] = tentative_time_cost
                             e_cost[(neighbor, direction, v_next)] = tentative_energy_cost
-                            f_cost = tentative_g_cost + distance_cost(neighbor, goal)
+                            f_cost = tentative_g_cost + heuristic(neighbor, goal)
                             heapq.heappush(open_set, (f_cost, neighbor, direction, v_next,
                                                       tentative_time_cost, tentative_energy_cost))
     return None, None, None, None  # Return None if there is no path
 
 
-def w_a_star(grid, start, goal, start_direction=(1, 0), v_max=0.26, v_min=0.1):
+def w_a_star(grid, start, goal, start_direction=(1, 0), v_max=9.0, v_min=1):
     """Run weighted A* for balancing different heuristics, running diffenet lamnda factor between the
     heuristics and finding the best compremise between the two objectivs.
     """
@@ -178,6 +177,9 @@ def convert_map_to_grid(image, with_actors=False):
     binary_image = 1 - binary_image
     return binary_image
 
+
+# Example usage:
 if __name__ == "__main__":
+
     im = cv2.imread("/home/yaron/FinalProjectCogRob/catkin_ws/image.png")
     b = convert_map_to_grid(im)

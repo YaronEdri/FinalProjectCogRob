@@ -3,8 +3,6 @@
 import rospy
 from gazebo_msgs.msg import ModelStates
 import numpy as np
-
-
 import json
 import cv2
 
